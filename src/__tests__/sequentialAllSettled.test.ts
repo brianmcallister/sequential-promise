@@ -29,22 +29,24 @@ describe('sequentialAllSettled', () => {
     ]);
   });
 
-  it('should run all promises sequentially', async (done) => {
-    const createPromise = (val: string) => new Promise(resolve => {
-      setTimeout(resolve.bind(null, val), 1);
-    });
+  it('should run all promises sequentially', async done => {
+    const createPromise = (val: string) =>
+      new Promise(resolve => {
+        setTimeout(resolve.bind(null, val), 1);
+      });
     const one = jest.fn(list => {
       expect(list).toStrictEqual([]);
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       expect(two).not.toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       expect(three).not.toHaveBeenCalled();
 
       return createPromise('test1');
     });
     const two = jest.fn(list => {
-      expect(list).toStrictEqual([
-        { status: 'fulfilled', value: 'test1' },
-      ]);
+      expect(list).toStrictEqual([{ status: 'fulfilled', value: 'test1' }]);
       expect(one).toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       expect(three).not.toHaveBeenCalled();
 
       return createPromise('test2');

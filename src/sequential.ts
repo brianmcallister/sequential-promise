@@ -5,7 +5,7 @@
  */
 const simpleReducer = async <T>(
   acc: Promise<T[]>,
-  next: (list: T[]) => Promise<T>
+  next: (list: T[]) => Promise<T>,
 ) => {
   const list = await acc;
   return Promise.resolve([...list, await next(list)]);

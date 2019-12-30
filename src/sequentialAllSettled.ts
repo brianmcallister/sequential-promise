@@ -8,7 +8,7 @@ interface Rejected {
   reason: unknown;
 }
 
-export type Result<T> = Fulfilled<T> | Rejected
+export type Result<T> = Fulfilled<T> | Rejected;
 
 /**
  * Run an array of functions that return promises sequentially, but as
@@ -24,7 +24,9 @@ export type Result<T> = Fulfilled<T> | Rejected
  * This is based on the forthcoming `Promise.allSettled`:
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled
  */
-export const sequentialAllSettled = <T>(funcs: ((list: Result<T>[]) => Promise<T>)[]) => {
+export const sequentialAllSettled = <T>(
+  funcs: ((list: Result<T>[]) => Promise<T>)[],
+) => {
   return funcs.reduce<Promise<Result<T>[]>>(async (acc, next) => {
     const list = await acc;
     let result;
@@ -34,7 +36,6 @@ export const sequentialAllSettled = <T>(funcs: ((list: Result<T>[]) => Promise<T
         status: 'fulfilled',
         value: await next(list),
       } as const;
-
     } catch (err) {
       result = {
         status: 'rejected',
