@@ -5,8 +5,11 @@
  */
 const simpleReducer = async <T>(
   acc: Promise<T[]>,
-  next: () => Promise<T>
-) => Promise.resolve([...(await acc), await next()]);
+  next: (list: T[]) => Promise<T>
+) => {
+  const list = await acc;
+  return Promise.resolve([...list, await next(list)]);
+};
 
 /**
  * Run an array of functions that return promises in order,
@@ -16,6 +19,6 @@ const simpleReducer = async <T>(
  * This works very similarlly to `Promise.all`, in that if one
  * of the promises rejects, everything will stop.
  */
-export const sequential = <T>(funcs: (() => Promise<T>)[]) => {
+export const sequential = <T>(funcs: ((list: T[]) => Promise<T>)[]) => {
   return funcs.reduce<Promise<T[]>>(simpleReducer, Promise.resolve([]));
 };

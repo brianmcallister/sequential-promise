@@ -24,7 +24,7 @@ export type Result<T> = Fulfilled<T> | Rejected
  * This is based on the forthcoming `Promise.allSettled`:
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled
  */
-export const sequentialAllSettled = <T>(funcs: (() => Promise<T>)[]) => {
+export const sequentialAllSettled = <T>(funcs: ((list: Result<T>[]) => Promise<T>)[]) => {
   return funcs.reduce<Promise<Result<T>[]>>(async (acc, next) => {
     const list = await acc;
     let result;
@@ -32,7 +32,7 @@ export const sequentialAllSettled = <T>(funcs: (() => Promise<T>)[]) => {
     try {
       result = {
         status: 'fulfilled',
-        value: await next(),
+        value: await next(list),
       } as const;
 
     } catch (err) {
