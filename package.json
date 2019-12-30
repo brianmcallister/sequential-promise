@@ -24,7 +24,8 @@
     "build": "tsc -b --clean && tsc",
     "lint": "eslint ./src/**/* --ext=.ts",
     "prepare": "npm run build",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "types": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/jest": "^24.0.25",
