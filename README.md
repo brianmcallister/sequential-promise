@@ -1,4 +1,4 @@
-# sequential-promise
+# @brianmcallister/sequential-promise
 
 [![codecov](https://codecov.io/gh/brianmcallister/sequential-promise/branch/master/graph/badge.svg)](https://codecov.io/gh/brianmcallister/sequential-promise) [![CircleCI](https://circleci.com/gh/brianmcallister/sequential-promise.svg?style=svg)](https://circleci.com/gh/brianmcallister/sequential-promise) [![npm version](https://img.shields.io/npm/v/@brianmcallister/sequential-promise?label=version&color=%2354C536&logo=npm)](https://www.npmjs.com/package/@brianmcallister/sequential-promise)
 
