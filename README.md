@@ -38,7 +38,7 @@ npm start
 ## Installation
 
 ```sh
-npm install sequential-promise
+npm install @brianmcallister/sequential-promise
 ```
 
 ###### [⇡ Top](#table-of-contents)
@@ -50,7 +50,7 @@ The main concept to understand here is that you'll need to create an array of fu
 The functions in this package iterate over the array of functions you pass, calls each one, and then waits for each returned promise settle before continuing on.
 
 ```ts
-import sequential from 'sequential-promise';
+import sequential from '@brianmcallister/sequential-promise';
 
 const asyncRequests = [
   () => fetchUser({ id: 1 }),
@@ -76,7 +76,7 @@ renderOrderDetails(userOrderDetails);
 #### `sequential`
 
 ```ts
-import sequential from 'sequential-promise';
+import sequential from '@brianmcallister/sequential-promise';
 ```
 
 `sequential` is the default export. It iterates over an array of functions that return promises. If one of the promises rejects, then everything will stop, and `sequential` will return a rejected promise, just like how [`Promise#all`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) behaves.
@@ -88,7 +88,7 @@ sequential: <T>(funcs: ((list: T[]) => Promise<T>)[]) => Promise<T[]>;
 All promises resolving:
 
 ```ts
-import sequential from 'sequential-promise';
+import sequential from '@brianmcallister/sequential-promise';
 
 const promises = [
   () => Promise.resolve('one'),
@@ -102,7 +102,7 @@ const results = await sequential(promises);
 Some promises rejecting:
 
 ```ts
-import sequential from 'sequential-promise';
+import sequential from '@brianmcallister/sequential-promise';
 
 const promises = [
   () => Promise.resolve('one'),
@@ -120,7 +120,7 @@ try {
 #### `sequentialAllSettled`
 
 ```ts
-import { sequentialAllSettled } from 'sequential-promise';
+import { sequentialAllSettled } from '@brianmcallister/sequential-promise';
 ```
 
 `sequentialAllSettled` attempts to behave the same way the forthcoming [`Promise#allSettled](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled) behaves.
@@ -134,7 +134,7 @@ sequentialAllSettled: <T>(funcs: ((list: Result<T>[]) => Promise<T>)[]) => Promi
 Example:
 
 ```ts
-import { sequentialAllSettled } from 'sequential-promise';
+import { sequentialAllSettled } from '@brianmcallister/sequential-promise';
 
 const promises = [
   () => Promise.resolve('one'),
@@ -154,7 +154,7 @@ const results = await sequentialAllSettled(promises);
 Settled value when using [`sequentialAllSettled`](#sequentialallsettled).
 
 ```ts
-import { Result } from 'sequential-promise';
+import { Result } from '@brianmcallister/sequential-promise';
 ```
 
 ```ts
