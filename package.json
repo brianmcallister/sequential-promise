@@ -1,6 +1,6 @@
 {
   "name": "sequential-promise",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Run Promises that depend on each other sequentially",
   "main": "dist/index.js",
   "repository": "brianmcallister/sequential-promise",
