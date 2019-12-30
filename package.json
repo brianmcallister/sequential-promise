@@ -1,28 +1,43 @@
 {
-  "name": "serial-promise",
+  "name": "sequential-promise",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "lint": "eslint ./src/**/* --ext=.ts",
-    "build": "tsc",
-    "test": "jest"
+  "description": "Run Promises that depend on each other sequentially",
+  "main": "dist/index.js",
+  "repository": "brianmcallister/sequential-promise",
+  "license": "MIT",
+  "author": {
+    "name": "Brian Wm. McAllister",
+    "email": "brian@brianmcallister.com",
+    "url": "https://www.brianmcallister.com"
   },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "typescript": "^3.7.4"
+  "files": [
+    "dist/**/*"
+  ],
+  "keywords": [
+    "typescript",
+    "promise",
+    "sequential",
+    "serial",
+    "dependencies"
+  ],
+  "scripts": {
+    "build": "tsc -b --clean && tsc",
+    "lint": "eslint ./src/**/* --ext=.ts",
+    "prepare": "npm run build",
+    "test": "jest --coverage"
   },
   "devDependencies": {
     "@types/jest": "^24.0.25",
     "@types/node": "^13.1.2",
     "@typescript-eslint/eslint-plugin": "^2.14.0",
     "@typescript-eslint/parser": "^2.14.0",
-    "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.9.0",
     "eslint-plugin-prettier": "^3.1.2",
+    "eslint": "^6.8.0",
     "jest": "^24.9.0",
     "prettier": "^1.19.1",
-    "ts-jest": "^24.2.0"
+    "rimraf": "^3.0.0",
+    "ts-jest": "^24.2.0",
+    "typescript": "^3.7.4"
   }
 }
