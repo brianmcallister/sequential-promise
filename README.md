@@ -47,7 +47,7 @@ npm install @brianmcallister/sequential-promise
 
 The main concept to understand here is that you'll need to create an array of functions that create Promises, not an array of Promises (if you're using TypeScript, then the compiler will yell at you if you pass `Promise<unknown>[]`).
 
-The functions in this package iterate over the array of functions you pass, calls each one, and then waits for each returned promise settle before continuing on.
+The functions in this package iterate over the array of functions you pass, calls each one, and then waits for each returned promise to settle before continuing on.
 
 ```ts
 import sequential from '@brianmcallister/sequential-promise';
@@ -79,7 +79,7 @@ renderOrderDetails(userOrderDetails);
 import sequential from '@brianmcallister/sequential-promise';
 ```
 
-`sequential` is the default export. It iterates over an array of functions that return promises. If one of the promises rejects, then everything will stop, and `sequential` will return a rejected promise, just like how [`Promise#all`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) behaves.
+`sequential` is the default export. It iterates over an array of functions that return promises. If one of the promises rejects, then everything will stop, and `sequential` will return a rejected promise, similar (but not exactly!) how [`Promise#all`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) behaves.
 
 ```ts
 sequential: <T>(funcs: ((list: T[]) => Promise<T>)[]) => Promise<T[]>;
@@ -107,6 +107,7 @@ import sequential from '@brianmcallister/sequential-promise';
 const promises = [
   () => Promise.resolve('one'),
   () => Promise.reject('oops'),
+  () => Promise.resolve('two'),
 ];
 
 try {
@@ -123,9 +124,9 @@ try {
 import { sequentialAllSettled } from '@brianmcallister/sequential-promise';
 ```
 
-`sequentialAllSettled` attempts to behave the same way the forthcoming [`Promise#allSettled](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled) behaves.
+`sequentialAllSettled` attempts to behave the same way the forthcoming [`Promise#allSettled`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled) behaves.
 
-Even if one of the promises rejects, the iteration won't stop. Instead, the results of every promise are gathered up and the final promise resolves with a summary of all the promises settled values as `Result<T>[]` (See: [`Result<T>`](#resultt) below.
+Even if one of the promises rejects, the iteration won't stop. Instead, the results of every promise are gathered up and the final promise resolves with a summary of all the settled values as `Result<T>[]` (See: [`Result<T>`](#resultt) below.
 
 ```ts
 sequentialAllSettled: <T>(funcs: ((list: Result<T>[]) => Promise<T>)[]) => Promise<Result<T>[]>;
