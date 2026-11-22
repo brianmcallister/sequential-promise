@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@brianmcallister/sequential-promise</title>
+    <meta
+      name="description"
+      content="Run promises that depend on each other, one after another. A visual comparison of Promise.all, sequential and sequentialAllSettled."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Inconsolata:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="header">
+      <svg class="header__logo" width="16" height="16" viewBox="0 0 12 12" aria-hidden="true">
+        <path
+          fill-rule="evenodd"
+          d="M6.32226893.05062544c1.44833138.3468103 4.19103317 2.92379242 5.24643317 4.74784395 0 0 .4309755.66964309.4312977 1.20918367C12.0009869 7.6607139 7.67557247 12 6.02290076 12c-.10489525 0-.22054702-.0174733-.34516969-.0506254-1.44833138-.3468103-4.19103319-2.92379246-5.2464332-4.74784399 0 0-.43097552-.66964309-.4312977-1.20918367C-.00098694 4.3392861 4.32442753 0 5.97709924 0c.10489525 0 .22054702.01747327.34516969.05062544z"
+        />
+      </svg>
+      <a href="https://www.brianmcallister.com">Brian Wm. McAllister</a>
+      <a href="https://github.com/brianmcallister/sequential-promise">GitHub</a>
+      <a href="https://www.npmjs.com/package/@brianmcallister/sequential-promise">npm</a>
+    </header>
+
+    <main class="page">
+      <section class="intro">
+        <h1>sequential-promise</h1>
+        <p class="intro__lede">
+          Run promises that depend on each other, one after another. Each request waits for the
+          one before it to settle, and gets every earlier result.
+        </p>
+        <pre class="intro__install"><code>npm install @brianmcallister/sequential-promise</code></pre>
+      </section>
+
+      <section class="setup" aria-labelledby="setup-title">
+        <div class="setup__head">
+          <div>
+            <h2 id="setup-title">Four requests that depend on each other</h2>
+            <p>
+              You can't load someone's orders before you know who they are. Make a request fail,
+              then run it again to see how each approach reacts.
+            </p>
+          </div>
+          <button class="button" id="run" type="button">Run again</button>
+        </div>
+        <ol class="tasks" id="tasks"></ol>
+      </section>
+
+      <section class="lanes" id="lanes" aria-label="Results"></section>
+
+      <section class="native" aria-labelledby="native-title">
+        <h2 id="native-title">Do you still need this library?</h2>
+        <p>
+          Probably not. When this was written in 2019, <code>Promise.allSettled</code> hadn't shipped
+          yet and running promise-returning functions in order meant reaching for
+          <code>reduce</code>. Today a <code>for...of</code> loop with <code>await</code> does the
+          same job in three lines, as the examples above show.
+        </p>
+        <p>
+          If your requests don't need earlier results, <code>Array.fromAsync</code> (ES2024) runs
+          them in order and rejects on the first failure, just like <code>sequential</code>:
+        </p>
+        <pre><code>const results = await Array.fromAsync(requests, (request) =&gt; request());</code></pre>
+        <p>
+          The library still works, and its TypeScript types are handy, but a loop you can read at a
+          glance is usually the better choice.
+        </p>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

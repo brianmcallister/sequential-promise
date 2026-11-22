@@ -4,11 +4,13 @@
 
 > Run Promises that depend on each other sequentially
 
-`sequential-promise` allows for running a series of promises sequentially, where each promise in the list depends on the previous promise having [settled](https://github.com/domenic/promises-unwrapping/blob/master/docs/states-and-fates.md). There are two functions in this package, one that mirrors the behavior of [`Promise#all`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all), and one mirroring [`Promise#allSettled`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled) (but which does not require `Promise#allSettled` to exist in your environment).
+`sequential-promise` allows for running a series of promises sequentially, where each promise in the list depends on the previous promise having [settled](https://github.com/domenic/promises-unwrapping/blob/master/docs/states-and-fates.md). There are two functions in this package, one that mirrors the behavior of [`Promise#all`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all), and one mirroring [`Promise#allSettled`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled).
+
+Modern JavaScript can now do this without a library. See [Native alternatives](#native-alternatives).
 
 ## Table of contents
 
-<!-- - [Demo](#demo) -->
+- [Demo](#demo)
 - [Installation](#installation)
 - [Usage](#usage)
 - [API](#api)
@@ -17,11 +19,13 @@
     - [`sequentialAllSettled`](#sequentialallsettled)
   - Types
     - [`Result<T>`](#resultt)
+- [Native alternatives](#native-alternatives)
 
-<!--
 ## Demo
 
-Hosted demo: [https://sequential-promise.netlify.com/](https://sequential-promise.netlify.com/)
+Hosted demo: [https://brianmcallister.github.io/sequential-promise/](https://brianmcallister.github.io/sequential-promise/)
+
+The demo runs the same four requests through `Promise.all`, `sequential` and `sequentialAllSettled` side by side, so you can see how each one behaves when a request fails.
 
 You can also run the demo locally. To get started:
 
@@ -33,7 +37,6 @@ npm start
 ```
 
 ###### [⇡ Top](#table-of-contents)
--->
 
 ## Installation
 
@@ -124,7 +127,7 @@ try {
 import { sequentialAllSettled } from '@brianmcallister/sequential-promise';
 ```
 
-`sequentialAllSettled` attempts to behave the same way the forthcoming [`Promise#allSettled`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled) behaves.
+`sequentialAllSettled` behaves like [`Promise#allSettled`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled), but runs each function only after the previous promise has settled.
 
 Even if one of the promises rejects, the iteration won't stop. Instead, the results of every promise are gathered up and the final promise resolves with a summary of all the settled values as `Result<T>[]` (See: [`Result<T>`](#resultt) below.
 
@@ -170,6 +173,43 @@ interface Rejected {
 }
 
 type Result<T> = Fulfilled<T> | Rejected;
+```
+
+###### [⇡ Top](#table-of-contents)
+
+## Native alternatives
+
+When this library was written, `Promise.allSettled` hadn't shipped yet, and running promise-returning functions in order usually meant reaching for `reduce`. Today you can do the same thing with a `for...of` loop and `await`.
+
+The equivalent of `sequential`:
+
+```ts
+const results = [];
+
+for (const request of requests) {
+  results.push(await request(results));
+}
+```
+
+The equivalent of `sequentialAllSettled`:
+
+```ts
+const results = [];
+
+for (const request of requests) {
+  try {
+    const value = await request(results);
+    results.push({ status: 'fulfilled', value });
+  } catch (reason) {
+    results.push({ status: 'rejected', reason });
+  }
+}
+```
+
+If your functions don't need earlier results, [`Array.fromAsync`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fromAsync) (ES2024) runs them in order and rejects on the first failure, just like `sequential`:
+
+```ts
+const results = await Array.fromAsync(requests, (request) => request());
 ```
 
 ###### [⇡ Top](#table-of-contents)
