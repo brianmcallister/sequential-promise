@@ -1,45 +1,69 @@
 {
   "name": "@brianmcallister/sequential-promise",
-  "version": "1.0.0",
-  "description": "Run Promises that depend on each other sequentially",
-  "main": "dist/index.js",
-  "repository": "brianmcallister/sequential-promise",
+  "version": "2.0.0",
+  "description": "Run promises that depend on each other, one after another",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brianmcallister/sequential-promise.git"
+  },
   "homepage": "https://brianmcallister.github.io/sequential-promise/",
+  "bugs": "https://github.com/brianmcallister/sequential-promise/issues",
   "license": "MIT",
   "author": {
     "name": "Brian Wm. McAllister",
     "email": "brian@brianmcallister.com",
     "url": "https://www.brianmcallister.com"
   },
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
-    "dist/**/*"
+    "dist"
   ],
   "keywords": [
-    "typescript",
     "promise",
     "sequential",
     "serial",
-    "dependencies"
+    "async",
+    "allsettled",
+    "typescript"
   ],
   "scripts": {
-    "build": "tsc -b --clean && tsc",
-    "lint": "eslint ./src/**/* --ext=.ts",
-    "prepare": "npm run build",
-    "test": "jest --coverage",
-    "types": "tsc --noEmit"
+    "build": "tsup",
+    "format": "prettier --write .",
+    "lint": "eslint . && prettier --check .",
+    "lint:package": "publint",
+    "prepack": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.25",
-    "@types/node": "^13.1.2",
-    "@typescript-eslint/eslint-plugin": "^2.14.0",
-    "@typescript-eslint/parser": "^2.14.0",
-    "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.9.0",
-    "eslint-plugin-prettier": "^3.1.2",
-    "jest": "^25.2.7",
-    "prettier": "^1.19.1",
-    "rimraf": "^3.0.0",
-    "ts-jest": "^25.3.1",
-    "typescript": "^3.7.4"
+    "@eslint/js": "10.0.1",
+    "@vitest/coverage-v8": "5.1.0",
+    "eslint": "10.14.0",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.14.0",
+    "prettier": "3.9.10",
+    "publint": "0.3.15",
+    "tsup": "9.0.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1",
+    "vitest": "5.1.0"
   }
 }

@@ -1,24 +1,28 @@
 /**
- * Broken out reducer function to do the work
- * of waiting for a promise to resolve, and adding
- * it to the array of results.
+ * A function in the list passed to `sequential`. It receives the results so far, and returns the
+ * next result or a promise for it.
  */
-const simpleReducer = async <T>(
-  acc: Promise<T[]>,
-  next: (list: T[]) => Promise<T>,
-) => {
-  const list = await acc;
-  return Promise.resolve([...list, await next(list)]);
-};
+export type SequentialTask<T> = (results: T[]) => T | PromiseLike<T>;
 
 /**
- * Run an array of functions that return promises in order,
- * waiting for each returned promise to resolve before running
- * the next function.
+ * Call each function in `tasks` in order, waiting for each one's promise to settle before calling
+ * the next. Each function receives the results so far.
  *
- * This works very similarlly to `Promise.all`, in that if one
- * of the promises rejects, everything will stop.
+ * Resolves with every result, in order. Like `Promise.all`, it rejects as soon as one promise
+ * rejects, and the functions after it are never called.
+ *
+ *   const [user, orders] = await sequential([
+ *     () => fetchUser(1),
+ *     ([user]) => fetchOrders(user.id),
+ *   ]);
  */
-export const sequential = <T>(funcs: ((list: T[]) => Promise<T>)[]) => {
-  return funcs.reduce<Promise<T[]>>(simpleReducer, Promise.resolve([]));
+export const sequential = async <T>(tasks: readonly SequentialTask<T>[]): Promise<T[]> => {
+  const results: T[] = [];
+
+  for (const task of tasks) {
+    // Pass a copy, so a function can't change the results the others see.
+    results.push(await task([...results]));
+  }
+
+  return results;
 };

@@ -1,75 +1,111 @@
-import { sequentialAllSettled } from '../sequentialAllSettled';
+import { describe, expect, it } from 'vitest';
+
+import { sequentialAllSettled, type Result } from '../index';
+
+const later = <T>(value: T, ms = 1) =>
+  new Promise<T>((resolve) => {
+    setTimeout(() => {
+      resolve(value);
+    }, ms);
+  });
 
 describe('sequentialAllSettled', () => {
-  it('should handle a list functions that all resolve', async () => {
-    const promises = [
-      () => Promise.resolve('test1'),
-      () => Promise.resolve('test2'),
-    ];
-
-    const results = await sequentialAllSettled(promises);
-
-    expect(results).toStrictEqual([
-      { status: 'fulfilled', value: 'test1' },
-      { status: 'fulfilled', value: 'test2' },
+  it('resolves with the outcome of every function, in order', async () => {
+    await expect(
+      sequentialAllSettled([
+        () => later('a'),
+        () => Promise.reject(new Error('oops')),
+        () => later('c'),
+      ]),
+    ).resolves.toStrictEqual([
+      { status: 'fulfilled', value: 'a' },
+      { status: 'rejected', reason: new Error('oops') },
+      { status: 'fulfilled', value: 'c' },
     ]);
   });
 
-  it('should handle a list of functions where some reject', async () => {
-    const promises = [
-      () => Promise.reject('failed'),
-      () => Promise.resolve('test2'),
-    ];
-
-    const results = await sequentialAllSettled(promises);
+  it('keeps going when a function throws', async () => {
+    const results = await sequentialAllSettled([
+      () => {
+        throw new Error('thrown');
+      },
+      () => 'after',
+    ]);
 
     expect(results).toStrictEqual([
-      { status: 'rejected', reason: 'failed' },
-      { status: 'fulfilled', value: 'test2' },
+      { status: 'rejected', reason: new Error('thrown') },
+      { status: 'fulfilled', value: 'after' },
     ]);
   });
 
-  it('should run all promises sequentially', async done => {
-    const createPromise = (val: string) =>
-      new Promise(resolve => {
-        setTimeout(resolve.bind(null, val), 1);
-      });
-    const one = jest.fn(list => {
-      expect(list).toStrictEqual([]);
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      expect(two).not.toHaveBeenCalled();
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      expect(three).not.toHaveBeenCalled();
+  it('matches the shape of Promise.allSettled', async () => {
+    const tasks = [() => Promise.resolve(1), () => Promise.reject(new Error('no'))];
 
-      return createPromise('test1');
-    });
-    const two = jest.fn(list => {
-      expect(list).toStrictEqual([{ status: 'fulfilled', value: 'test1' }]);
-      expect(one).toHaveBeenCalled();
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      expect(three).not.toHaveBeenCalled();
+    await expect(sequentialAllSettled(tasks)).resolves.toStrictEqual(
+      await Promise.allSettled(tasks.map((task) => task())),
+    );
+  });
 
-      return createPromise('test2');
-    });
-    const three = jest.fn(list => {
-      expect(list).toStrictEqual([
-        { status: 'fulfilled', value: 'test1' },
-        { status: 'fulfilled', value: 'test2' },
-      ]);
-      expect(one).toHaveBeenCalled();
-      expect(two).toHaveBeenCalled();
+  it('waits for each promise before calling the next function', async () => {
+    const events: string[] = [];
+    const task =
+      (name: string, fail = false) =>
+      async () => {
+        events.push(`start ${name}`);
+        await later(null);
+        events.push(`end ${name}`);
 
-      return createPromise('test3');
-    });
+        if (fail) {
+          throw new Error(name);
+        }
 
-    const results = await sequentialAllSettled([one, two, three]);
+        return name;
+      };
 
-    expect(results).toStrictEqual([
-      { status: 'fulfilled', value: 'test1' },
-      { status: 'fulfilled', value: 'test2' },
-      { status: 'fulfilled', value: 'test3' },
+    await sequentialAllSettled([task('one'), task('two', true), task('three')]);
+
+    expect(events).toStrictEqual([
+      'start one',
+      'end one',
+      'start two',
+      'end two',
+      'start three',
+      'end three',
+    ]);
+  });
+
+  it('passes each function the outcomes so far', async () => {
+    const seen: Result<string>[][] = [];
+
+    await sequentialAllSettled<string>([
+      (results) => {
+        seen.push(results);
+
+        return 'a';
+      },
+      (results) => {
+        seen.push(results);
+
+        throw new Error('b');
+      },
+      (results) => {
+        seen.push(results);
+
+        return 'c';
+      },
     ]);
 
-    done();
+    expect(seen).toStrictEqual([
+      [],
+      [{ status: 'fulfilled', value: 'a' }],
+      [
+        { status: 'fulfilled', value: 'a' },
+        { status: 'rejected', reason: new Error('b') },
+      ],
+    ]);
+  });
+
+  it('resolves with an empty list when there are no functions', async () => {
+    await expect(sequentialAllSettled([])).resolves.toStrictEqual([]);
   });
 });
