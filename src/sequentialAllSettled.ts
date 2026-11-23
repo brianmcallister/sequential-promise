@@ -1,48 +1,42 @@
-interface Fulfilled<T> {
+export interface Fulfilled<T> {
   status: 'fulfilled';
   value: T;
 }
 
-interface Rejected {
+export interface Rejected {
   status: 'rejected';
   reason: unknown;
 }
 
+/** The outcome of one function passed to `sequentialAllSettled`, like `Promise.allSettled`. */
 export type Result<T> = Fulfilled<T> | Rejected;
 
 /**
- * Run an array of functions that return promises sequentially, but as
- * opposed to `sequential`, this will run everything, whether or
- * not the promises resolve or reject.
- *
- * The final returned promise will resolve with an array of results,
- * which will include an `isError` boolean.
- *
- * The resolved or rejected value will be set to the `payload` key
- * of the results object.
- *
- * This is based on the forthcoming `Promise.allSettled`:
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled
+ * A function in the list passed to `sequentialAllSettled`. It receives the outcomes so far, and
+ * returns the next value or a promise for it.
  */
-export const sequentialAllSettled = <T>(
-  funcs: ((list: Result<T>[]) => Promise<T>)[],
-) => {
-  return funcs.reduce<Promise<Result<T>[]>>(async (acc, next) => {
-    const list = await acc;
-    let result;
+export type SequentialAllSettledTask<T> = (results: Result<T>[]) => T | PromiseLike<T>;
 
+/**
+ * Call each function in `tasks` in order, waiting for each one's promise to settle before calling
+ * the next. Each function receives the outcomes so far.
+ *
+ * Unlike `sequential`, it keeps going when a promise rejects or a function throws. Resolves with
+ * the outcome of every function, in order, in the same shape as `Promise.allSettled`.
+ */
+export const sequentialAllSettled = async <T>(
+  tasks: readonly SequentialAllSettledTask<T>[],
+): Promise<Result<T>[]> => {
+  const results: Result<T>[] = [];
+
+  for (const task of tasks) {
     try {
-      result = {
-        status: 'fulfilled',
-        value: await next(list),
-      } as const;
-    } catch (err) {
-      result = {
-        status: 'rejected',
-        reason: err,
-      } as const;
+      // Pass a copy, so a function can't change the outcomes the others see.
+      results.push({ status: 'fulfilled', value: await task([...results]) });
+    } catch (reason) {
+      results.push({ status: 'rejected', reason });
     }
+  }
 
-    return Promise.resolve([...list, result]);
-  }, Promise.resolve([]));
+  return results;
 };

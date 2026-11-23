@@ -1,6 +1,6 @@
 # @brianmcallister/sequential-promise
 
-[![npm version](https://img.shields.io/npm/v/@brianmcallister/sequential-promise?label=version&color=%2354C536&logo=npm)](https://www.npmjs.com/package/@brianmcallister/sequential-promise)
+[![CI](https://github.com/brianmcallister/sequential-promise/actions/workflows/ci.yml/badge.svg)](https://github.com/brianmcallister/sequential-promise/actions/workflows/ci.yml) [![npm version](https://img.shields.io/npm/v/@brianmcallister/sequential-promise?label=version&color=%2354C536&logo=npm)](https://www.npmjs.com/package/@brianmcallister/sequential-promise)
 
 > Run Promises that depend on each other sequentially
 
@@ -20,6 +20,7 @@ Modern JavaScript can now do this without a library. See [Native alternatives](#
   - Types
     - [`Result<T>`](#resultt)
 - [Native alternatives](#native-alternatives)
+- [Upgrading from 1.x](#upgrading-from-1x)
 
 ## Demo
 
@@ -55,10 +56,7 @@ The functions in this package iterate over the array of functions you pass, call
 ```ts
 import sequential from '@brianmcallister/sequential-promise';
 
-const asyncRequests = [
-  () => fetchUser({ id: 1 }),
-  (user1) => fetchOrderDetails(user1.orders),
-];
+const asyncRequests = [() => fetchUser({ id: 1 }), (user1) => fetchOrderDetails(user1.orders)];
 
 sequential(asyncRequests).then(([user1, userOrderDetails]) => {
   renderOrderDetails(userOrderDetails);
@@ -85,7 +83,7 @@ import sequential from '@brianmcallister/sequential-promise';
 `sequential` is the default export. It iterates over an array of functions that return promises. If one of the promises rejects, then everything will stop, and `sequential` will return a rejected promise, similar (but not exactly!) how [`Promise#all`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) behaves.
 
 ```ts
-sequential: <T>(funcs: ((list: T[]) => Promise<T>)[]) => Promise<T[]>;
+sequential<T>(tasks: readonly ((results: T[]) => T | PromiseLike<T>)[]): Promise<T[]>;
 ```
 
 All promises resolving:
@@ -93,10 +91,7 @@ All promises resolving:
 ```ts
 import sequential from '@brianmcallister/sequential-promise';
 
-const promises = [
-  () => Promise.resolve('one'),
-  () => Promise.resolve('two'),
-];
+const promises = [() => Promise.resolve('one'), () => Promise.resolve('two')];
 
 const results = await sequential(promises);
 // #=> ['one', 'two'];
@@ -114,7 +109,7 @@ const promises = [
 ];
 
 try {
-  await sequential(promises)
+  await sequential(promises);
 } catch (err) {
   console.log(err);
   // #=> 'oops';
@@ -129,10 +124,12 @@ import { sequentialAllSettled } from '@brianmcallister/sequential-promise';
 
 `sequentialAllSettled` behaves like [`Promise#allSettled`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled), but runs each function only after the previous promise has settled.
 
-Even if one of the promises rejects, the iteration won't stop. Instead, the results of every promise are gathered up and the final promise resolves with a summary of all the settled values as `Result<T>[]` (See: [`Result<T>`](#resultt) below.
+Even if one of the promises rejects, the iteration won't stop. Instead, the results of every promise are gathered up and the final promise resolves with a summary of all the settled values as `Result<T>[]` (see [`Result<T>`](#resultt) below).
 
 ```ts
-sequentialAllSettled: <T>(funcs: ((list: Result<T>[]) => Promise<T>)[]) => Promise<Result<T>[]>;
+sequentialAllSettled<T>(
+  tasks: readonly ((results: Result<T>[]) => T | PromiseLike<T>)[],
+): Promise<Result<T>[]>;
 ```
 
 Example:
@@ -140,10 +137,7 @@ Example:
 ```ts
 import { sequentialAllSettled } from '@brianmcallister/sequential-promise';
 
-const promises = [
-  () => Promise.resolve('one'),
-  () => Promise.reject('oops'),
-];
+const promises = [() => Promise.resolve('one'), () => Promise.reject('oops')];
 
 const results = await sequentialAllSettled(promises);
 // #=> [{ status: 'fulfilled', value: 'one' }, { status: 'rejected', reason: 'oops' }];
@@ -158,18 +152,18 @@ const results = await sequentialAllSettled(promises);
 Settled value when using [`sequentialAllSettled`](#sequentialallsettled).
 
 ```ts
-import { Result } from '@brianmcallister/sequential-promise';
+import type { Result } from '@brianmcallister/sequential-promise';
 ```
 
 ```ts
 interface Fulfilled<T> {
-    status: 'fulfilled';
-    value: T;
+  status: 'fulfilled';
+  value: T;
 }
 
 interface Rejected {
-    status: 'rejected';
-    reason: unknown;
+  status: 'rejected';
+  reason: unknown;
 }
 
 type Result<T> = Fulfilled<T> | Rejected;
@@ -211,5 +205,16 @@ If your functions don't need earlier results, [`Array.fromAsync`](https://develo
 ```ts
 const results = await Array.fromAsync(requests, (request) => request());
 ```
+
+###### [⇡ Top](#table-of-contents)
+
+## Upgrading from 1.x
+
+The functions behave the same. What changed:
+
+- The package has an `exports` map, so deep imports from `dist/` no longer work.
+- `sequential` is also a named export, alongside the default export.
+- Functions can return plain values as well as promises.
+- Each function receives a copy of the results so far, so changing it no longer affects the functions after it.
 
 ###### [⇡ Top](#table-of-contents)
